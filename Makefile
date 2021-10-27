@@ -16,7 +16,7 @@ install:
 
 run:
 	echo "Bot is running"
-	python3 main.py
+	python3 bot/main.py
 
 isort:
 	isort .
