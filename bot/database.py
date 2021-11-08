@@ -1,3 +1,4 @@
+import re
 from peewee import (CharField, ForeignKeyField, Model, PrimaryKeyField,
                     SqliteDatabase, TextField)
 
@@ -14,6 +15,23 @@ class Song(Model):
     class Meta:
         database = db
         db_table = 'songs'
+
+    @staticmethod
+    def load_tracklist_from_file(filename: str):
+        """Load new tracklist from file to DB.
+
+        :param filename: tracklist filename
+        """
+        sep, tracklist = ' - ', []
+        with open(filename, encoding='utf-8-sig') as f:
+            for line in f:
+                line = re.sub(r'\d+\. ', '', line)
+                author_song = line.rstrip().split(sep=sep)
+                # read pair "author - song title"
+                tracklist.append(tuple(author_song))
+        Song.truncate_table()
+        Song.insert_many(
+            tracklist, fields=[Song.author, Song.song]).execute()
 
 
 class Order(Model):
