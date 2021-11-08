@@ -6,3 +6,4 @@ env.read_env()
 
 TOKEN = env("TOKEN")
 DATABASE_NAME = "band.db"
+TRACKLIST_NAME = "tracklist.txt"

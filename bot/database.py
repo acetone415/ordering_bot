@@ -2,7 +2,7 @@ import re
 from peewee import (CharField, ForeignKeyField, Model, PrimaryKeyField,
                     SqliteDatabase, TextField)
 
-from config import DATABASE_NAME
+from config import DATABASE_NAME, TRACKLIST_NAME
 
 db = SqliteDatabase(DATABASE_NAME)
 
@@ -31,7 +31,7 @@ class Song(Model):
                 tracklist.append(tuple(author_song))
         Song.truncate_table()
         Song.insert_many(
-            tracklist, fields=[Song.author, Song.song]).execute()
+            tracklist, fields=[Song.author, Song.title]).execute()
 
 
 class Order(Model):
@@ -44,8 +44,8 @@ class Order(Model):
         db_table = 'orders'
 
     @staticmethod
-    def make_order(title, congratulation):
-        Order.insert(title=title, congratulation=congratulation).execute()
+    def make_order(song_id, congratulation):
+        Order.insert(song_id=song_id, congratulation=congratulation).execute()
 
 
 db.create_tables([Song, Order])
