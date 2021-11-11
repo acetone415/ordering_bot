@@ -15,7 +15,7 @@ install:
 	pip install -r requirements.txt
 
 run:
-	echo "Bot is running"
+	echo "Bot is running\nTo stop Bot press CTRL-C"
 	python3 bot/main.py
 
 isort:
