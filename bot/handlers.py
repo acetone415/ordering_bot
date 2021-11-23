@@ -1,9 +1,10 @@
 import database as db
 import keyboards as kb
+from states import OrderStates
+
 from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.types import CallbackQuery, Message
-from states import OrderStates
 
 
 async def send_greeting(msg: Message):
@@ -68,16 +69,16 @@ async def enter_congratulation(msg: Message, state: FSMContext):
 def register_handlers(dp: Dispatcher):
     dp.register_message_handler(send_greeting)
     dp.register_callback_query_handler(show_help, lambda callback:
-        callback.data == 'help', state='*') # noqa E128
+        callback.data == 'help', state='*')
     dp.register_callback_query_handler(show_tracklist,
-        lambda callback: callback.data == 'show_tracklist', state='*') # noqa E128
+        lambda callback: callback.data == 'show_tracklist', state='*')
     dp.register_callback_query_handler(start_ordering,
-        lambda callback: callback.data == 'order', state='*') # noqa E128
+        lambda callback: callback.data == 'order', state='*')
     dp.register_message_handler(process_song_id_invalid,
-        lambda msg: not msg.text.isdigit() or # noqa E128
-        int(msg.text) not in [song.id for song in db.Song.select()], # noqa E128
+        lambda msg: not msg.text.isdigit() or
+        int(msg.text) not in [song.id for song in db.Song.select()],
         state=OrderStates.choose_song_number)
     dp.register_message_handler(process_song_id,
-        state=OrderStates.choose_song_number) # noqa E128
+        state=OrderStates.choose_song_number)
     dp.register_message_handler(enter_congratulation,
-        state=OrderStates.enter_congratulation) # noqa E128
+        state=OrderStates.enter_congratulation)
