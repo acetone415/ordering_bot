@@ -43,14 +43,15 @@ async def show_tracklist(callback_query: CallbackQuery):
 @dp.callback_query_handler(lambda callback: callback.data == 'order',
                            state='*')
 async def start_ordering(callback_query: CallbackQuery):
-    """Chose song id from tracklist."""
 
     await callback_query.message.answer(text='Введите номер песни')
     await OrderStates.choose_song_number.set()
     await callback_query.answer()
 
 
-@dp.message_handler(lambda msg: int(msg.text) not in [song.id for song in db.Song.select()],
+@dp.message_handler(lambda msg: not msg.text.isdigit() or
+                    int(msg.text) not in
+                    [song.id for song in db.Song.select()],
                     state=OrderStates.choose_song_number)
 async def process_song_id_invalid(msg: Message):
     """If entered song id not exists."""
@@ -61,6 +62,7 @@ async def process_song_id_invalid(msg: Message):
 
 @dp.message_handler(state=OrderStates.choose_song_number)
 async def process_song_id(msg: Message, state: FSMContext):
+    """Chose song id from tracklist."""
 
     await state.update_data(chosen_song_id=int(msg.text))
     await OrderStates.enter_congratulation.set()
