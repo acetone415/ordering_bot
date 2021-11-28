@@ -1,10 +1,9 @@
 import database as db
 import keyboards as kb
-from states import OrderStates
-
 from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.types import CallbackQuery, Message
+from states import OrderStates
 
 
 async def send_greeting(msg: Message):
@@ -59,9 +58,13 @@ async def enter_congratulation(msg: Message, state: FSMContext):
 
     await state.update_data(congratulation=msg.text)
     user_data = await state.get_data()
+    chosen_song_id = user_data['chosen_song_id']
+    chosen_song = db.Song[chosen_song_id]
+    congratulation = user_data['congratulation']
     msg_text = ('Заказ на поздравление создано\n'
-                f'Выбранная песня:{user_data["chosen_song_id"]}'
-                f'\nПоздравление:\n{user_data["congratulation"]}')
+                f'Выбранная песня:{chosen_song.author} {chosen_song.title}'
+                f'\nПоздравление:\n{congratulation}')
+    db.Order.make_order(song_id=chosen_song_id, congratulation=congratulation)
     await msg.answer(text=msg_text)
     await state.finish()
 
