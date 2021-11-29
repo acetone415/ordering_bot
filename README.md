@@ -14,7 +14,7 @@ This bot based on [aiogram](https://github.com/aiogram/aiogram).
   * Enter your Token in `.env`:
     > TOKEN = "Token_From_BotFather"
   * Load your tracklist (`tracklist.txt` as example). 
-  You can name it otherwise than `tracklist.txt`
+  You can name it otherwise than `tracklist.txt`, but you need to set TRACKLIST_NAME in `bot/config.py` as you named your tracklist file.
 
 * Install requirements:  
   ``` make install ```
