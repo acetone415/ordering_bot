@@ -1,6 +1,6 @@
 import re
 
-from config import DATABASE_NAME
+from config import DATABASE_NAME, TRACKLIST_NAME
 from peewee import (CharField, ForeignKeyField, Model, PrimaryKeyField,
                     SqliteDatabase, TextField)
 
@@ -57,3 +57,9 @@ class Order(Model):
 
 
 db.create_tables([Song, Order])
+try:
+    if not len(Song.select()):
+        Song.load_tracklist_from_file(TRACKLIST_NAME)
+except FileNotFoundError:
+    print("Load tracklist file!")
+    raise

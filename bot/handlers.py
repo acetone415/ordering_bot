@@ -16,8 +16,11 @@ async def show_help(callback_query: CallbackQuery):
     """Send help information as message from the Bot to user,
     when user chose 'help'."""
 
-    HELP_INFO = """Отправьте боту любое сообщение. Выберите нужную команду.
-    """
+    HELP_INFO = ('Для начала диалога отправьте боту любое сообщение.\n'
+    'Для заказа песни ознакомьтесь с треклистом '
+    '(выберете пункт "Показать треклист") и запомните номер нужной песни.\n'
+    'Затем выберете пункт "Заказать поздравление" и бот попросит ввести номер '
+    'выбранной песни и текст поздравления')
     await callback_query.message.answer(text=HELP_INFO)
     await callback_query.answer()
 
@@ -61,8 +64,8 @@ async def enter_congratulation(msg: Message, state: FSMContext):
     chosen_song_id = user_data['chosen_song_id']
     chosen_song = db.Song[chosen_song_id]
     congratulation = user_data['congratulation']
-    msg_text = ('Заказ на поздравление создано\n'
-                f'Выбранная песня:{chosen_song.author} {chosen_song.title}'
+    msg_text = ('Заказ на поздравление создано.\n'
+                f'Выбранная песня:\n{chosen_song.author} {chosen_song.title}'
                 f'\nПоздравление:\n{congratulation}')
     db.Order.make_order(song_id=chosen_song_id, congratulation=congratulation)
     await msg.answer(text=msg_text)
