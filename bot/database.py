@@ -1,8 +1,9 @@
 import re
 
-from config import DATABASE_NAME, TRACKLIST_NAME
 from peewee import (CharField, ForeignKeyField, Model, PrimaryKeyField,
                     SqliteDatabase, TextField)
+
+from config import DATABASE_NAME, TRACKLIST_NAME
 
 db = SqliteDatabase(DATABASE_NAME)
 

@@ -1,8 +1,9 @@
-import database as db
-import keyboards as kb
 from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.types import CallbackQuery, Message
+
+import database as db
+import keyboards as kb
 from states import OrderStates
 
 
