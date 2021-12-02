@@ -49,13 +49,17 @@ async def process_song_id_invalid(msg: Message):
     return await msg.answer(text=text)
 
 
-async def process_song_id(msg: Message, state: FSMContext):
+async def process_song_id(msg: Message, state: FSMContext,  **kwargs):
     """Chose song id from tracklist."""
 
-    await state.update_data(chosen_song_id=int(msg.text))
+    song_id = int(msg.text) if 'song_id' not in kwargs.keys() else\
+        kwargs['song_id']
+    await state.update_data(chosen_song_id=song_id)
     await OrderStates.congratulation.set()
-    await msg.answer('Введите текст позравления',
-        reply_markup=kb.KB_FROM_ENTER_CONGR)
+    await msg.answer(f'Выбранная песня:\n{db.Song[song_id].author} - '
+        f'{db.Song[song_id].title}\n'
+        'Введите текст позравления:',
+        reply_markup=kb.KB_TO_SONG)
 
 
 async def process_congratulation(msg: Message, state: FSMContext):
@@ -84,6 +88,23 @@ async def approve_order(callback_query: CallbackQuery, state: FSMContext):
     await state.finish()
 
 
+async def back_to_song_choosing(callback_query: CallbackQuery):
+
+    await callback_query.answer()
+    await start_ordering(callback_query)
+
+
+async def back_to_congr_choosing(callback_query: CallbackQuery,
+                                 state: FSMContext):
+
+    await OrderStates.song.set()
+    await callback_query.answer()
+    user_data = await state.get_data()
+    song_id = user_data['chosen_song_id']
+    await process_song_id(msg=callback_query.message, state=state,
+        song_id=song_id)
+
+
 def register_handlers(dp: Dispatcher):
     dp.register_message_handler(send_greeting)
 
@@ -96,6 +117,12 @@ def register_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(approve_order,
         lambda callback: callback.data == 'approve',
         state=OrderStates.approve)
+    dp.register_callback_query_handler(back_to_song_choosing,
+        lambda callback: callback.data == 'choose_song',
+        state='*')
+    dp.register_callback_query_handler(back_to_congr_choosing,
+        lambda callback: callback.data == 'choose_congratulation',
+        state='*')
 
     dp.register_message_handler(process_song_id_invalid,
         lambda msg: not msg.text.isdigit() or
