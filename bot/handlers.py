@@ -4,7 +4,9 @@ from aiogram.types import CallbackQuery, Message
 
 import database as db
 import keyboards as kb
+from config import GROUP_CHANNEL_ID
 from states import OrderStates
+from loader import bot
 
 
 async def send_greeting(msg: Message):
@@ -84,6 +86,12 @@ async def approve_order(callback_query: CallbackQuery, state: FSMContext):
     db.Order.make_order(song_id=data['song_id'],
         congratulation=data['congratulation'])
     await callback_query.message.answer('Заказ на поздравление отправлен')
+    text = ('Заказ на поздравление.\n'
+        f'{db.Song[data["song_id"]].author} - '
+        f'{db.Song[data["song_id"]].title}\n'
+        'Поздравление:\n'
+        f'{data["congratulation"]}')
+    await bot.send_message(chat_id=GROUP_CHANNEL_ID, text=text)
     await callback_query.answer()
     await state.finish()
 
