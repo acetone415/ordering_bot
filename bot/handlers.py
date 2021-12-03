@@ -18,10 +18,10 @@ async def show_help(callback_query: CallbackQuery):
     when user chose 'help'."""
 
     HELP_INFO = ('Для начала диалога отправьте боту любое сообщение.\n'
-    'Для заказа песни ознакомьтесь с треклистом '
-    '(выберете пункт "Показать треклист") и запомните номер нужной песни.\n'
-    'Затем выберете пункт "Заказать поздравление" и бот попросит ввести номер '
-    'выбранной песни и текст поздравления')
+        'Для заказа песни ознакомьтесь с треклистом '
+        '(выберете пункт "Показать треклист") и запомните номер нужной песни.\n'
+        'Затем выберете пункт "Заказать поздравление" и бот попросит ввести номер '
+        'выбранной песни и текст поздравления')
     await callback_query.message.answer(text=HELP_INFO)
     await callback_query.answer()
 
@@ -54,7 +54,7 @@ async def process_song_id(msg: Message, state: FSMContext,  **kwargs):
 
     song_id = int(msg.text) if 'song_id' not in kwargs.keys() else\
         kwargs['song_id']
-    await state.update_data(chosen_song_id=song_id)
+    await state.update_data(song_id=song_id)
     await OrderStates.congratulation.set()
     await msg.answer(f'Выбранная песня:\n{db.Song[song_id].author} - '
         f'{db.Song[song_id].title}\n'
@@ -66,10 +66,10 @@ async def process_congratulation(msg: Message, state: FSMContext):
     """Entered congratulation text in Message, song is choosen."""
 
     await state.update_data(congratulation=msg.text)
-    user_data = await state.get_data()
-    chosen_song_id = user_data['chosen_song_id']
-    chosen_song = db.Song[chosen_song_id]
-    congratulation = user_data['congratulation']
+    data = await state.get_data()
+    song_id = data['song_id']
+    chosen_song = db.Song[song_id]
+    congratulation = data['congratulation']
     msg_text = ('Подтвердите заказ.\n'
                 f'Выбранная песня:\n{chosen_song.author} {chosen_song.title}'
                 f'\nПоздравление:\n{congratulation}')
@@ -80,9 +80,9 @@ async def process_congratulation(msg: Message, state: FSMContext):
 
 async def approve_order(callback_query: CallbackQuery, state: FSMContext):
 
-    user_data = await state.get_data()
-    db.Order.make_order(song_id=user_data['chosen_song_id'],
-        congratulation=user_data['congratulation'])
+    data = await state.get_data()
+    db.Order.make_order(song_id=data['song_id'],
+        congratulation=data['congratulation'])
     await callback_query.message.answer('Заказ на поздравление отправлен')
     await callback_query.answer()
     await state.finish()
@@ -99,8 +99,8 @@ async def back_to_congr_choosing(callback_query: CallbackQuery,
 
     await OrderStates.song.set()
     await callback_query.answer()
-    user_data = await state.get_data()
-    song_id = user_data['chosen_song_id']
+    data = await state.get_data()
+    song_id = data['song_id']
     await process_song_id(msg=callback_query.message, state=state,
         song_id=song_id)
 
