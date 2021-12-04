@@ -5,16 +5,20 @@ from aiogram.types import CallbackQuery, Message
 import database as db
 import keyboards as kb
 from config import GROUP_CHANNEL_ID
+from loader import dp, bot
 from states import OrderStates
-from loader import bot
 
 
+
+@dp.message_handler()
 async def send_greeting(msg: Message):
     """Send keyboard with options 'help', 'show_tracklist', 'order'."""
 
     await msg.answer(text='Что вы хотите выбрать?', reply_markup=kb.KB_MAIN)
 
 
+@dp.callback_query_handler(lambda callback: callback.data == 'help',
+                           state='*')
 async def show_help(callback_query: CallbackQuery):
     """Send help information as message from the Bot to user,
     when user chose 'help'."""
@@ -28,6 +32,8 @@ async def show_help(callback_query: CallbackQuery):
     await callback_query.answer()
 
 
+@dp.callback_query_handler(lambda callback: callback.data == 'show_tracklist',
+                           state='*')
 async def show_tracklist(callback_query: CallbackQuery):
     """Send tracklist as message from the Bot to user,
     when user chose 'show_tracklist'."""
@@ -36,6 +42,8 @@ async def show_tracklist(callback_query: CallbackQuery):
     await callback_query.answer()
 
 
+@dp.callback_query_handler(lambda callback: callback.data == 'order',
+                           state='*')
 async def start_ordering(callback_query: CallbackQuery):
 
     await callback_query.message.answer(text='Введите номер песни')
@@ -43,6 +51,9 @@ async def start_ordering(callback_query: CallbackQuery):
     await callback_query.answer()
 
 
+@dp.message_handler(lambda msg: not msg.text.isdigit() or
+    int(msg.text) not in [song.id for song in db.Song.select()],
+    state=OrderStates.song)
 async def process_song_id_invalid(msg: Message):
     """If entered song id not exists."""
 
@@ -51,6 +62,7 @@ async def process_song_id_invalid(msg: Message):
     return await msg.answer(text=text)
 
 
+@dp.message_handler(state=OrderStates.song)
 async def process_song_id(msg: Message, state: FSMContext,  **kwargs):
     """Chose song id from tracklist."""
 
@@ -64,6 +76,7 @@ async def process_song_id(msg: Message, state: FSMContext,  **kwargs):
         reply_markup=kb.KB_TO_SONG)
 
 
+@dp.message_handler(state=OrderStates.congratulation)
 async def process_congratulation(msg: Message, state: FSMContext):
     """Entered congratulation text in Message, song is choosen."""
 
@@ -80,6 +93,8 @@ async def process_congratulation(msg: Message, state: FSMContext):
     await msg.answer(text=msg_text, reply_markup=kb.KB_FROM_ORDER_APPROVAL)
 
 
+@dp.callback_query_handler(lambda callback: callback.data == 'approve',
+                           state=OrderStates.approve)
 async def approve_order(callback_query: CallbackQuery, state: FSMContext):
 
     data = await state.get_data()
@@ -96,12 +111,16 @@ async def approve_order(callback_query: CallbackQuery, state: FSMContext):
     await state.finish()
 
 
+@dp.callback_query_handler(lambda callback: callback.data == 'choose_song',
+                           state='*')
 async def back_to_song_choosing(callback_query: CallbackQuery):
 
     await callback_query.answer()
     await start_ordering(callback_query)
 
 
+@dp.callback_query_handler(lambda callback:
+                           callback.data == 'choose_congratulation', state='*')
 async def back_to_congr_choosing(callback_query: CallbackQuery,
                                  state: FSMContext):
 
@@ -111,32 +130,3 @@ async def back_to_congr_choosing(callback_query: CallbackQuery,
     song_id = data['song_id']
     await process_song_id(msg=callback_query.message, state=state,
         song_id=song_id)
-
-
-def register_handlers(dp: Dispatcher):
-    dp.register_message_handler(send_greeting)
-
-    dp.register_callback_query_handler(show_help, lambda callback:
-        callback.data == 'help', state='*')
-    dp.register_callback_query_handler(show_tracklist,
-        lambda callback: callback.data == 'show_tracklist', state='*')
-    dp.register_callback_query_handler(start_ordering,
-        lambda callback: callback.data == 'order', state='*')
-    dp.register_callback_query_handler(approve_order,
-        lambda callback: callback.data == 'approve',
-        state=OrderStates.approve)
-    dp.register_callback_query_handler(back_to_song_choosing,
-        lambda callback: callback.data == 'choose_song',
-        state='*')
-    dp.register_callback_query_handler(back_to_congr_choosing,
-        lambda callback: callback.data == 'choose_congratulation',
-        state='*')
-
-    dp.register_message_handler(process_song_id_invalid,
-        lambda msg: not msg.text.isdigit() or
-        int(msg.text) not in [song.id for song in db.Song.select()],
-        state=OrderStates.song)
-    dp.register_message_handler(process_song_id,
-        state=OrderStates.song)
-    dp.register_message_handler(process_congratulation,
-        state=OrderStates.congratulation)
