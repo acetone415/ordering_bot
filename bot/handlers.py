@@ -5,7 +5,7 @@ from aiogram.types import CallbackQuery, Message
 import database as db
 import keyboards as kb
 from config import GROUP_CHANNEL_ID
-from loader import dp, bot
+from loader import dp
 from states import OrderStates
 
 
@@ -106,7 +106,7 @@ async def approve_order(callback_query: CallbackQuery, state: FSMContext):
         f'{db.Song[data["song_id"]].title}\n'
         'Поздравление:\n'
         f'{data["congratulation"]}')
-    await bot.send_message(chat_id=GROUP_CHANNEL_ID, text=text)
+    await dp.bot.send_message(chat_id=GROUP_CHANNEL_ID, text=text)
     await callback_query.answer()
     await state.finish()
 
